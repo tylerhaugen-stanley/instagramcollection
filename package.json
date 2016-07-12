@@ -1,8 +1,10 @@
 {
-  "name" : "Pixlee-miniproject",
-  "version" : "0.0.1",
-  "description" : "Pixlee mini project",
-  "dependencies" : {
-    "mime" : "~1.2.7"
+  "name": "Pixlee-miniproject",
+  "version": "0.0.1",
+  "description": "Pixlee mini project",
+  "dependencies": {
+    "express": "^4.14.0",
+    "mime": "~1.2.7",
+    "pg": "6.0.2"
   }
 }
