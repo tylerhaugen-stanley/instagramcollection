@@ -1,3 +1,6 @@
+//Since React is global, we need to disable this lint. Once the code is `webpack`-ed, it needs to be enabled again.
+/*global React $ */
+
 var dbQueryData =[];
 var numImagesToDisplay = 33;
 const imageIncrement = 33;
