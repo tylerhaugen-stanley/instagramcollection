@@ -114,7 +114,7 @@ var CollectionQuery = React.createClass({
             <input type="radio" id="createCollection" name="queryType" onChange={this.handleRadioButtonChange} defaultChecked/> Create Collection          
           </span>
           <span id="">
-            <input type="radio" id="queryCollection" name="queryType" onChange={this.handleRadioButtonChange} /> Query Collection
+            <input type="radio" id="queryCollection" name="queryType" onChange={this.handleRadioButtonChange} /> Load Collection
           </span>
           <span id="hashtag">
             Instagram Hashtag: <input type="text" placeholder="#puppy" value={this.state.hashtag} onChange={this.handlehashtagChange} required/>

@@ -9,6 +9,7 @@ var pg = require('pg');
 
 const unixTimestampDivisor = 1000; // Used to convert time in miliseconds to a unix timestamp.
 const unixTimestampSecondsInDay = 86399;
+
 var app = express();
 
 var bodyParser = require('body-parser')
