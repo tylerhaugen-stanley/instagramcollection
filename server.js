@@ -23,6 +23,19 @@ pg.defaults.ssl = true;
 
 app.use("/public", express.static(__dirname + '/public'));
 
+pg.connect(process.env.DATABASE_URL || db_url, function(err, client){
+  if (err) throw err;
+
+  client.query("SELECT EXISTS(SELECT * FROM information_schema.tables WHERE table_name = 'collections');", function(err, result){
+    if (err) throw err;
+
+    if (!result.rows[0].exists){
+      // Create the table.
+      client.query("CREATE TABLE COLLECTIONS(ID SERIAL PRIMARY KEY NOT NULL, tag_time INT NOT NULL, hashtag TEXT NOT NULL, username TEXT NOT NULL, media_type TEXT NOT NULL, media_url TEXT NOT NULL, original_url TEXT NOT NULL);");
+    }
+  });
+});
+
 app.get('/', function(request, response){
   response.sendFile('public/index.html', {root: __dirname });
 });
@@ -58,11 +71,6 @@ app.get('/queryCollection', function(request, response){
 });
 
 app.listen(process.env.PORT || 3000);
-
-
-// TODO: REMOVE
-// Create table query
-// client.query("CREATE TABLE COLLECTIONS(ID SERIAL PRIMARY KEY NOT NULL, tag_time INT NOT NULL, hashtag TEXT NOT NULL, username TEXT NOT NULL, media_type TEXT NOT NULL, media_url TEXT NOT NULL, original_url TEXT NOT NULL);");
 
 /*
 * Functions
