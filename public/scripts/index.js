@@ -134,31 +134,34 @@ var CollectionQuery = React.createClass({
         <p id='emptyQuery' hidden>No collection with that hashtag, check date range or hashtag.</p>
       </div>
     );
-	}
+  }
 });
 
 var Collection = React.createClass({
-  loadMore: function(){
+  loadMore: function () {
     numImagesToDisplay += imageIncrement;
-    if (numImagesToDisplay > dbQueryData.length){
+    if (numImagesToDisplay > dbQueryData.length) {
       $('#loadMore').hide();
     }
     this.props.updateCollectionToDisplay(numImagesToDisplay);
   },
-  render: function(){
-    var instagramNodes = this.props.collectionData.map(function(instagramPost) {
-      if (instagramPost.tag_time){ // Collection from DB, parse using my JSON structure.
-        return (
-          <Media author={instagramPost.username} media_type={instagramPost.media_type} media={instagramPost.media_url} original_link={instagramPost.original_url} key={instagramPost.id}/>
-        )
-      } else { // New collection, parse using instagram JSON structure
-        return (
-          <Media author={instagramPost.user.username} media_type={instagramPost.type} media={instagramPost.type === "image" ? instagramPost.images.standard_resolution.url : instagramPost.videos.standard_resolution.url} original_link={instagramPost.link} key={instagramPost.id}/>
-        );
-      }
-    });
 
-    return(
+  renderInstagramPostNode(instagramPost) {
+    if (instagramPost.tag_time) {
+      return (
+        <DatabaseInstagramPost instagramPost={instagramPost}/>
+      );
+    } else {
+      return (
+        <ApiInstagramPost instagramPost={instagramPost}/>
+      );
+    }
+  },
+
+  render: function () {
+    var instagramNodes = this.props.collectionData.map(this.renderInstagramPostNode);
+
+    return (
       <div>
         {instagramNodes}
         <br />
@@ -168,38 +171,85 @@ var Collection = React.createClass({
   }
 });
 
+var DatabaseInstagramPost = React.createClass({
+  render: function () {
+    var instagramPost = this.props.instagramPost;
+    return (
+      <Media author={instagramPost.username}
+             media_type={instagramPost.media_type}
+             media={instagramPost.media_url}
+             original_link={instagramPost.original_url}
+             key={instagramPost.id}/>
+    );
+  }
+});
+
+var ApiInstagramPost = React.createClass({
+  mediaUrl: function () {
+    var instagramPost = this.props.instagramPost;
+    var postType = instagramPost.type;
+
+    return instagramPost[postType === "image" ? 'images' : 'videos'].standard_resolution.url;
+  },
+
+  render: function () {
+    var instagramPost = this.props.instagramPost;
+    return (
+      <Media author={instagramPost.user.username}
+             media_type={instagramPost.type}
+             media={this.mediaUrl()}
+             original_link={instagramPost.link}
+             key={instagramPost.id}/>
+    );
+  }
+});
+
 var Media = React.createClass({
-  render: function(){
-    var header = (
+  renderMediaHeader: function () {
+    return (
       <header id='mediaHeader'>
-          <a id="author" target="_blank" href={"https://instagram.com/".concat(this.props.author)}>{this.props.author}</a>
-          <a id="instagramLink" target="_blank" href={this.props.original_link}>Instagram link</a> <br />
+        <a id="author" target="_blank" href={"https://instagram.com/".concat(this.props.author)}>{this.props.author}</a>
+        <a id="instagramLink" target="_blank" href={this.props.original_link}>Instagram link</a> <br />
       </header>
     );
+  },
 
-    if (this.props.media_type === "image"){
-      return (
-        <div>
-          {header}
-          <div id="mediaDiv">
-            <img id="media" height="640px" width="640px" src={this.props.media} /> <br />
-          </div>
+  renderMediaContentBlock: function (media) {
+    return (
+      <div>
+        {this.renderMediaHeader()}
+        <div id="mediaDiv">
+          {media}
         </div>
-      );
+      </div>
+    );
+  },
+
+  renderImageWithHeader: function () {
+    return this.renderMediaContentBlock(
+      <div>
+        <img id="media" height="640px" width="640px" src={this.props.media}/> <br />
+      </div>
+    );
+  },
+
+  renderVideoWithHeader: function (header) {
+    return this.renderMediaContentBlock(
+      <video id="media" height="640px" width="640px" controls>
+        <source src={this.props.media} type="video/mp4"/>
+      </video>
+    );
+  },
+
+  render: function () {
+    if (this.props.media_type === "image") {
+      return this.renderImageWithHeader(header);
     } else { // Need to display a video
-      return (
-        <div>
-          {header}
-          <div id="mediaDiv">
-            <video id="media" height="640px" width="640px" controls> 
-              <source src={this.props.media} type="video/mp4"/> 
-            </video> <br />
-          </div>
-        </div>
-      );
+      return this.renderVideoWithHeader(header);
     }
   }
 });
+
 ReactDOM.render(
   <CollectionViewer />,
   document.getElementById('content')
