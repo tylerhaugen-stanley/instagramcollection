@@ -28,7 +28,6 @@ app.get('/', function(request, response){
 });
 
 // Create a collection in the database.
-// Return the collection of photos??
 app.post('/createCollection', function(request, response){
 
   // Remove leading '#' if one exists.
@@ -43,11 +42,7 @@ app.post('/createCollection', function(request, response){
     "startDate": startDateUnixTimestamp
   };
 
-  // Get and ID of an instagram photo from right now.
   queryInstagram(hashtag, options, response);
-  //queryInstagram(hashtag, {"count": 5, "minTagId": "AQCZFOx6aTUz24hx8SnHwt075inSmYXxmyCSm8c4sJo5HYulejtKUhOPN2e7o_kHXd8Cqqc94INlAlTOh0optSdyiKVXb9HnyqEV7mtWR_tEHULhMyp4nvML31Xsxaz9rNk"}, response);
-  //queryInstagram(hashtag, {"count": 50}, setMediaClosestToEndDate, endDateUnixTimestamp);
-  
 });
 
 // Get a collection of photos if one exists. 
@@ -59,10 +54,7 @@ app.get('/queryCollection', function(request, response){
   var startDateUnixTimestamp = convertToUnixTimestamp(query.startDate);
   var endDateUnixTimestamp = convertToUnixTimestamp(query.endDate) + unixTimestampSecondsInDay; // Set to end of day instead of beginning.
 
-  console.log("Querying database");
   queryDatabase(hashtag, startDateUnixTimestamp, endDateUnixTimestamp, response);
-  //{"count": url_parts.query.count}
-  //queryInstagram(hashtag, response);
 });
 
 app.listen(process.env.PORT || 3000);
@@ -95,29 +87,22 @@ function parseMediaForClosestEndDate(instagramData, endDate, startDate, hashtag,
     var currentMediaCreatedTime = instagramMedia[index].created_time;
 
     // Save the oldest media
-    console.log("Comparing curMedia time: " + convertToDate(currentMediaCreatedTime) + " to endDate: " + convertToDate(endDate));
     if (currentMediaCreatedTime > endDate){
       // If a photo is newer than the endDate, need to run the query again.
       allPhotosWithinDateRange = false;
-      console.log("ONE DATE IS BAD");
       break;
     }
     if (currentMediaCreatedTime < startDate){
-      console.log("*********** Photo is older than start date");
       options.minTagId = instagramResponse.pagination.min_tag_id;
       allPhotosWithinDateRange = false;
     }
   }
 
   if (!allPhotosWithinDateRange){ // If no media found yet, repeat the instagram query.
-    console.log("calling query instagram again");
-
     queryInstagram(hashtag, options, parentResponse);
   } else {
-    console.log("Found an appropriate date, sending media back");
-    //options.callback = printMedia;
+    // Send data back to client and save collection in the db
     parentResponse.send(instagramData);
-    //saveCollection(instagramMedia, hashtag);
     saveCollectionInDB(instagramMedia, hashtag);
   }
 }
@@ -132,13 +117,10 @@ function queryDatabase(hashtag, startDateUnixTimestamp, endDateUnixTimestamp, pa
     });
 
     query.on('row', function(row){
-      console.log("pushing results");
       results.push(row);
     });
 
     query.on('end', function(){
-      console.log("Sending DB data back");
-      // console.log(results);
       parentResponse.send(results);
     })
   });
@@ -153,29 +135,13 @@ function saveCollectionInDB(instagramMedia, hashtag){
     for (index = 0; index < instagramMedia.length; index++){
       var tag_time = instagramMedia[index].created_time;
       var media_type = instagramMedia[index].type;
-
       var media_url = media_type === "image" ? instagramMedia[index].images.standard_resolution.url : instagramMedia[index].videos.standard_resolution.url; 
-      console.log(media_type + ": " + media_url);
-
-      if (media_type === "image"){
-        console.log("image");
-      } else {console.log("video");}
-      // var media_url = instagramMedia[index].images.standard_resolution.url;
       var original_url = instagramMedia[index].link;
       var username = instagramMedia[index].user.username;
 
       client.query("INSERT INTO COLLECTIONS(tag_time, hashtag, username, media_type, media_url, original_url) values($1, $2, $3, $4, $5, $6)", [tag_time, hashtag, username, media_type, media_url, original_url]);
     }
   });
-}
-
-function printMedia(instagramData){
-  var instagramMedia = JSON.parse(instagramData).data;
-  var index;
-
-  for (index = 0; index < instagramMedia.length; index++){
-    console.log(convertToDate(instagramMedia[index].created_time));
-  }
 }
 
 function queryInstagram(hashtag, options, parentResponse){
@@ -192,26 +158,14 @@ function queryInstagram(hashtag, options, parentResponse){
     url += "&max_tag_id=" + options.maxTagId;
   }
 
-  console.log("About to send query, url is ... ");
-  console.log(url);
-
   request(url, function (error, response, body) {
     if (!error && response.statusCode == 200) {
-      console.log("Successful instagram query");
       
       switch(options.callback){
         case parseMediaForClosestEndDate:
-          // options.callback(body, options.endDate, hashtag, parentResponse);
           parseMediaForClosestEndDate(body, options.endDate, options.startDate, hashtag, options.minTagId, parentResponse);
           break;
-        default:
-          console.log("IN DEFAULT");
-          console.log(options.callback);
-          break;
       }
-    } else {
-      console.log(error);
-      console.log(response.body);
     }
   });
 }

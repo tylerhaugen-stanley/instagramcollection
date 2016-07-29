@@ -72,7 +72,7 @@
 
 }
 
-#startDate {
+#startDateWrapper {
 	margin-left: 10px;
 	margin-right: 10px;
 }
@@ -87,12 +87,9 @@
 	width: 500px;
 	height: 0px;
 	font-size: medium;
+	margin-top: 5px;
 }
 
 #queryCollection {
 	margin-left: 10px
-}
-
-#createCollection {
-
 }

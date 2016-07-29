@@ -10,17 +10,16 @@ var CollectionViewer = React.createClass({
     this.setState({collectionData: dbQueryData.slice(0, numImagesToDisplay)});
   },
   handleCollectionQuerySubmit: function(queryData){
-    //console.log(queryData);
     this.setState({collectionData: []});
     $('#loadMore').hide();
     $('#emptyQuery').hide();
+
     if (queryData.queryType == "createCollection"){
       $.ajax({
         type: "POST",
         url: "createCollection",
         data: queryData,
         success: function(data) {
-          console.log(JSON.parse(data));
           $('#loadingMessage').hide();
           this.setState({collectionData: JSON.parse(data).data});
         }.bind(this),
@@ -34,9 +33,8 @@ var CollectionViewer = React.createClass({
         url: "queryCollection",
         data: queryData,
         success: function(data) {
-          console.log(data);
           $('#loadingMessage').hide();
-          if (data.length != 0){
+          if (data.length != 0){ // Check for empty db query
             dbQueryData = data;
             $('#loadMore').show();
             this.updateCollectionToDisplay(numImagesToDisplay);
@@ -71,14 +69,10 @@ var CollectionQuery = React.createClass({
     var startDate = this.state.startDate.trim();
     var endDate = this.state.endDate.trim();
 
-    // Ensure all fields are filled out.
-    if (!hashtag){
-      // TODO: Explain error.
 
-      return;
-    }
     if (startDate > endDate){
-      // TODO: Explain error
+      
+      alert("Start date cannot be greater than the end Date");
       return;
     }
 
@@ -95,10 +89,22 @@ var CollectionQuery = React.createClass({
     this.setState({hashtag: event.target.value});
   },
   handleStartDateChange: function(event){
-    this.setState({startDate: event.target.value});
+    this.setState({startDate: event.target.value}, function(){
+      if (this.state.startDate > this.state.endDate){
+        $("#startDate").css({"border-color": "red"});  
+      } else {
+        $("#startDate").css({"border-color": "initial"});  
+      }
+    });
   },
   handleEndDateChange: function(event){
-    this.setState({endDate: event.target.value});
+    this.setState({endDate: event.target.value}, function (){
+      if (this.state.startDate > this.state.endDate){
+        $("#startDate").css({"border-color": "red"});  
+      } else {
+        $("#startDate").css({"border-color": "initial"});  
+      }
+    });
   },
   render: function(){
 		return (
@@ -113,8 +119,8 @@ var CollectionQuery = React.createClass({
           <span id="hashtag">
             Instagram Hashtag: <input type="text" placeholder="#puppy" value={this.state.hashtag} onChange={this.handlehashtagChange} required/>
           </span>
-          <span id="startDate">
-            Start Date: <input type="date" name="startDate" value={this.state.startDate} onChange={this.handleStartDateChange} />
+          <span id="startDateWrapper">
+            Start Date: <input id="startDate" type="date" name="startDate" value={this.state.startDate} onChange={this.handleStartDateChange} />
           </span>
           <span id="endDate">
             End Date: <input type="date" name="endDate" value={this.state.endDate} onChange={this.handleEndDateChange} />
@@ -122,7 +128,7 @@ var CollectionQuery = React.createClass({
           <br/> <input id="submitButton" type="submit" />
         </form>
         <p id='loadingMessage' hidden>Loading...</p>
-        <p id='emptyQuery' hidden>No Collection with that Hashtag, check date range.</p>
+        <p id='emptyQuery' hidden>No collection with that hashtag, check date range or hashtag.</p>
       </div>
     );
 	}
@@ -178,7 +184,6 @@ var Media = React.createClass({
         </div>
       );
     } else { // Need to display a video
-      console.log()
       return (
         <div>
           {header}

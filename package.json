@@ -1,7 +1,7 @@
 {
-  "name": "Pixlee-miniproject",
+  "name": "instagramcollection",
   "version": "0.0.1",
-  "description": "Pixlee mini project",
+  "description": "Instagram Collection",
   "dependencies": {
     "body-parser": "^1.15.2",
     "express": "^4.14.0",
