@@ -3,8 +3,10 @@
   "version": "0.0.1",
   "description": "Pixlee mini project",
   "dependencies": {
+    "body-parser": "^1.15.2",
     "express": "^4.14.0",
     "mime": "~1.2.7",
-    "pg": "6.0.2"
+    "pg": "6.0.2",
+    "request": "^2.73.0"
   }
 }
