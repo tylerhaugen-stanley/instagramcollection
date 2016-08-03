@@ -19,7 +19,7 @@ What things you need to install the software and how to install them
 
 ## Running the program
 
-- In a terminal window execute `node .../server.js`
+- In a terminal window execute `npm i && node server.js`
 - In a browser window, load `localhost:3000`
 
 ## Authors
